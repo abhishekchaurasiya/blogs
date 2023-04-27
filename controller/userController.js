@@ -24,7 +24,6 @@ exports.registerUser = async (req, res, next) => {
 
     // destructured
     const { first_name, last_name, email, password } = req.body;
-    console.log(req.body)
 
     // check existing email in our db
     try {
