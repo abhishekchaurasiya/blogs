@@ -69,18 +69,18 @@ exports.login = async (req, res, next) => {
     // check error of req.body
     const { error } = userSchema.validate(req.body);
     if (error) {
-        return res.status(401).json({ message: error.message })
+        return res.status(422).json({ message: error.message })
     };
 
     const { email, password } = req.body;
     try {
         // check user and password is valid or not valid
         const user = await User.findOne({ email }).select("+password");
-        if (!user) return next(new ErrorHandler("Invalid Email and Password", 400))
+        if (!user) return next(new ErrorHandler("Invalid Email and Password", 403))
 
         // compare password db and req.body
         const isMatchedPassword = await bcrypt.compare(password, user.password);
-        if (!isMatchedPassword) return next(new ErrorHandler("Invalid Email and Password", 400));
+        if (!isMatchedPassword) return next(new ErrorHandler("Invalid Email and Password", 403));
 
         const { first_name } = user;
         const name = first_name.charAt(0).toUpperCase() + first_name.slice(1)

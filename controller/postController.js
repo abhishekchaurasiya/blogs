@@ -44,7 +44,6 @@ exports.createPost = async (req, res, next) => {
             fs.unlink(`${appRoot}/${filePath}`, (err) => {
                 // if error hai tabhi call karna hai 
                 if (err) return res.status(422).json({ message: err.message })
-
             })
             // joi error
             return res.status(422).json({ message: error.message })
@@ -112,14 +111,14 @@ exports.updatePost = async (req, res) => {
                 content,
                 ...(req.file && { image: filePath }),  // if req.file hai to update karo nahi to optional rahna chahiye 
             }, { new: true });
-            console.log(updatePostData)
+           
         } catch (error) {
             return res.status(500).json({
                 status: false,
                 message: "Internal server error!"
             });
         };
-        res.status(202).json({ status: true, message: "Post is succefully update.", post: updatePostData })
+        res.status(200).json({ status: true, message: "Post is succefully update.", post: updatePostData })
     })
 };
 
@@ -130,7 +129,7 @@ exports.deletePostData = async (req, res, next) => {
     if (!mongoose.isValidObjectId(id)) return res.status(422).json({ message: "This is not valid id." });
 
     let document = await Post.findByIdAndDelete({ _id: id }, { new: true })
-    if (!document) return res.status(500).json({ message: "This post already deleted!" });
+    if (!document) return res.status(204).json({ message: "This post already deleted!" });
 
     // image delete our uploads folder
     const imagePath = document._doc.image;
@@ -146,7 +145,7 @@ exports.deletePostData = async (req, res, next) => {
 exports.getAllPostData = async (req, res, next) => {
 
     // find post data from query method  
-    const { author, title, category, sort } = req.query;
+    const { author, title, category } = req.query;
     let queryObject = {};
 
     if (author) {
@@ -166,8 +165,7 @@ exports.getAllPostData = async (req, res, next) => {
     let page = Number(req.query.page) || 1;
     let limits = Number(req.query.limit) || 3;
     let skips = (page - 1) * limits // (1-1) * 4 = 0
-    // apiData = apiData.skip(skips).limit(limits);
-
+    apiData = apiData.skip(skips).limit(limits);
 
     let postData;
     try {
@@ -182,7 +180,7 @@ exports.getAllPostData = async (req, res, next) => {
     try {
         totalData = await Post.find();
     } catch (error) {
-        res.status(200).json({
+        res.status(500).json({
             status: false, message: "Internal server error!"
         })
     }
@@ -203,6 +201,7 @@ exports.getAllPostData = async (req, res, next) => {
 exports.getSinglePostData = async (req, res, next) => {
     const id = req.params.id;
     if (!mongoose.isValidObjectId(id)) return res.status(422).json({ message: "This is not valid id." });
+    
     let post;
     try {
         post = await Post.findById({ _id: id }).select("-__v -updatedAt");
